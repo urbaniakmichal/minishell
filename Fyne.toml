@@ -1,0 +1,6 @@
+[Details]
+  Name = "Mini Shell"
+  Icon = "terminal.png"
+  Package = "com.github.urbaniakmichal.minishell"
+  Version = "1.0.0"
+  Build = 1
