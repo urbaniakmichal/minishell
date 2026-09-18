@@ -127,12 +127,37 @@ func createTerminalTab() fyne.CanvasObject {
 	resultsBox := container.NewVBox()
 	scrollableResults := container.NewScroll(resultsBox)
 
-	input := widget.NewEntry()
+	input := &CommandEntry{}
+	input.ExtendBaseWidget(input)
 	input.SetPlaceHolder("Enter command...")
+	input.onHistoryUp = func() {
+		if len(input.history) == 0 {
+			return
+		}
+		if input.historyIdx > 0 {
+			input.historyIdx--
+			input.SetText(input.history[input.historyIdx])
+		}
+	}
+	input.onHistoryDown = func() {
+		if len(input.history) == 0 {
+			return
+		}
+		if input.historyIdx < len(input.history)-1 {
+			input.historyIdx++
+			input.SetText(input.history[input.historyIdx])
+		} else {
+			input.historyIdx = len(input.history)
+			input.SetText("")
+		}
+	}
 	input.OnSubmitted = func(text string) {
 		if text == "" {
 			return
 		}
+
+		input.history = append(input.history, text)
+		input.historyIdx = len(input.history)
 
 		addBlock := func(text string, bgColor color.RGBA) {
 			content := widget.NewLabel(text)
@@ -176,4 +201,29 @@ func createTerminalTab() fyne.CanvasObject {
 		nil,
 		splitView,
 	)
+}
+
+type CommandEntry struct {
+	widget.Entry
+	history       []string
+	historyIdx    int
+	onHistoryUp   func()
+	onHistoryDown func()
+}
+
+func (e *CommandEntry) TypedKey(key *fyne.KeyEvent) {
+	switch key.Name {
+	case fyne.KeyUp:
+		if e.onHistoryUp != nil {
+			e.onHistoryUp()
+		}
+	case fyne.KeyDown:
+		if e.onHistoryDown != nil {
+			e.onHistoryDown()
+		}
+	case fyne.KeyTab:
+		// todo tab use
+	default:
+		e.Entry.TypedKey(key)
+	}
 }
